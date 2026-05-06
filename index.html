@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CIC Attendance</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 20px;
+      padding: 40px 30px;
+      width: 100%;
+      max-width: 420px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+      text-align: center;
+    }
+
+    .logo {
+      font-size: 48px;
+      margin-bottom: 10px;
+    }
+
+    h1 {
+      font-size: 24px;
+      color: #1a1a2e;
+      margin-bottom: 4px;
+    }
+
+    .subtitle {
+      font-size: 13px;
+      color: #888;
+      margin-bottom: 28px;
+    }
+
+    .meeting-badge {
+      background: #e8f4fd;
+      border: 1px solid #b3d9f7;
+      border-radius: 10px;
+      padding: 10px 16px;
+      font-size: 13px;
+      color: #1a6fa8;
+      margin-bottom: 24px;
+      display: none;
+    }
+
+    label {
+      display: block;
+      text-align: left;
+      font-size: 13px;
+      font-weight: 600;
+      color: #444;
+      margin-bottom: 8px;
+    }
+
+    input[type="tel"] {
+      width: 100%;
+      padding: 14px 16px;
+      font-size: 18px;
+      border: 2px solid #ddd;
+      border-radius: 12px;
+      outline: none;
+      letter-spacing: 2px;
+      transition: border 0.3s;
+      text-align: center;
+    }
+
+    input[type="tel"]:focus {
+      border-color: #0f3460;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 14px;
+      font-size: 16px;
+      font-weight: 600;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      margin-top: 14px;
+      transition: all 0.3s;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #0f3460, #1a6fa8);
+      color: white;
+    }
+
+    .btn-primary:hover { opacity: 0.9; transform: translateY(-1px); }
+
+    .btn-success {
+      background: linear-gradient(135deg, #11998e, #38ef7d);
+      color: white;
+    }
+
+    .btn-outline {
+      background: white;
+      color: #e74c3c;
+      border: 2px solid #e74c3c;
+      margin-top: 10px;
+    }
+
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* Member Info Card */
+    .member-card {
+      background: #f0fdf4;
+      border: 2px solid #86efac;
+      border-radius: 14px;
+      padding: 20px;
+      margin: 20px 0;
+      text-align: left;
+      display: none;
+    }
+
+    .member-card .member-name {
+      font-size: 20px;
+      font-weight: 700;
+      color: #166534;
+    }
+
+    .member-card .member-unit {
+      font-size: 14px;
+      color: #4ade80;
+      font-weight: 600;
+      margin-top: 4px;
+    }
+
+    .member-card .member-meeting {
+      font-size: 12px;
+      color: #888;
+      margin-top: 8px;
+      border-top: 1px solid #d1fae5;
+      padding-top: 8px;
+    }
+
+    /* Message box */
+    .message {
+      padding: 14px;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 500;
+      margin-top: 16px;
+      display: none;
+    }
+
+    .message.error {
+      background: #fef2f2;
+      border: 1px solid #fca5a5;
+      color: #b91c1c;
+    }
+
+    .message.warning {
+      background: #fffbeb;
+      border: 1px solid #fcd34d;
+      color: #92400e;
+    }
+
+    .message.success {
+      background: #f0fdf4;
+      border: 1px solid #86efac;
+      color: #166534;
+    }
+
+    .spinner {
+      display: none;
+      margin: 16px auto 0;
+      width: 30px;
+      height: 30px;
+      border: 3px solid #ddd;
+      border-top: 3px solid #0f3460;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .reset-link {
+      margin-top: 20px;
+      font-size: 13px;
+      color: #aaa;
+      cursor: pointer;
+      text-decoration: underline;
+    }
+
+    .reset-link:hover { color: #555; }
+
+    /* Success Screen */
+    .success-screen {
+      display: none;
+    }
+
+    .success-screen .big-check {
+      font-size: 72px;
+      margin-bottom: 10px;
+    }
+
+    .success-screen h2 {
+      color: #166534;
+      font-size: 22px;
+    }
+
+    .success-screen p {
+      color: #555;
+      font-size: 14px;
+      margin-top: 8px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="card">
+
+  <!-- ===== INPUT SCREEN ===== -->
+  <div id="inputScreen">
+    <div class="logo">📋</div>
+    <h1>CIC Attendance</h1>
+    <p class="subtitle">Mark your attendance for today's meeting</p>
+
+    <div class="meeting-badge" id="meetingBadge">📅 Loading meeting...</div>
+
+    <label for="phoneInput">📱 Enter Your Mobile Number</label>
+    <input
+      type="tel"
+      id="phoneInput"
+      placeholder="e.g. 9876543210"
+      maxlength="15"
+      inputmode="numeric"
+      autofocus
+    />
+
+    <button class="btn btn-primary" id="lookupBtn" onclick="lookupMember()">
+      🔍 Find My Record
+    </button>
+
+    <div class="spinner" id="spinner"></div>
+    <div class="message" id="message"></div>
+  </div>
+
+  <!-- ===== CONFIRM SCREEN ===== -->
+  <div id="confirmScreen" style="display:none;">
+    <div class="logo">👤</div>
+    <h1>Is this you?</h1>
+    <p class="subtitle">Please confirm your details before registering</p>
+
+    <div class="member-card" id="memberCard" style="display:block;">
+      <div class="member-name" id="memberName"></div>
+      <div class="member-unit" id="memberUnit"></div>
+      <div class="member-meeting" id="memberMeeting"></div>
+    </div>
+
+    <button class="btn btn-success" id="confirmBtn" onclick="confirmAttendance()">
+      ✅ Yes, Mark My Attendance
+    </button>
+    <button class="btn btn-outline" onclick="resetForm()">
+      ❌ Not Me / Wrong Number
+    </button>
+
+    <div class="spinner" id="spinner2"></div>
+    <div class="message" id="message2"></div>
+  </div>
+
+  <!-- ===== SUCCESS SCREEN ===== -->
+  <div id="successScreen" class="success-screen">
+    <div class="big-check">✅</div>
+    <h2>Attendance Recorded!</h2>
+    <p id="successMsg"></p>
+    <br/>
+    <p style="font-size:12px; color:#aaa;">You may now close this page.</p>
+    <p class="reset-link" onclick="resetForm()">Register another member</p>
+  </div>
+
+</div>
+
+<script>
+  // ============================================================
+  //  WEB APP URL
+  // ============================================================
+  const API_URL = "https://script.google.com/macros/s/AKfycbwWkyxRAju_hpbUnoAHgg532_s23zkG3QwBcgL6RcJYiI78JZmw1z4T303l8FM2Gcuc/exec";
+  // ============================================================
+
+  let currentMember = null;
+  let currentPhone = null;
+
+  // Auto-load active meeting name on page load
+  window.onload = function () {
+    fetchActiveMeeting();
+  };
+
+  function fetchActiveMeeting() {
+    fetch(API_URL, {
+      method: "POST",
+      body: JSON.stringify({ action: "lookup", phone: "ping" })
+    })
+    .then(r => r.json())
+    .then(data => {
+      const badge = document.getElementById("meetingBadge");
+      badge.style.display = "block";
+      if (data.status === "no_meeting") {
+        badge.textContent = "⚠️ No active meeting right now";
+        badge.style.background = "#fff7ed";
+        badge.style.borderColor = "#fed7aa";
+        badge.style.color = "#c2410c";
+      } else if (data.meetingName) {
+        badge.textContent = "📅 " + data.meetingName + " — " + data.meetingDate;
+      } else {
+        badge.textContent = "📅 Meeting is active";
+      }
+    })
+    .catch(() => {
+      const badge = document.getElementById("meetingBadge");
+      badge.style.display = "block";
+      badge.textContent = "⚠️ Could not load meeting info";
+    });
+  }
+
+  function lookupMember() {
+    const phone = document.getElementById("phoneInput").value.trim();
+    const msgBox = document.getElementById("message");
+
+    // Validate input
+    if (!phone || phone.length < 10) {
+      showMessage(msgBox, "error", "⚠️ Please enter a valid mobile number.");
+      return;
+    }
+
+    if (!/^\d+$/.test(phone)) {
+      showMessage(msgBox, "error", "⚠️ Mobile number should contain digits only.");
+      return;
+    }
+
+    currentPhone = phone;
+    setLoading(true, "lookupBtn", "spinner");
+
+    fetch(API_URL, {
+      method: "POST",
+      body: JSON.stringify({ action: "lookup", phone: phone })
+    })
+    .then(r => r.json())
+    .then(data => {
+      setLoading(false, "lookupBtn", "spinner");
+
+      if (data.status === "found") {
+        currentMember = data;
+        showConfirmScreen(data);
+
+      } else if (data.status === "already_registered") {
+        showMessage(msgBox, "warning",
+          "⚠️ <strong>" + data.name + "</strong> (" + data.unit +
+          ") is already registered for <strong>" + data.meetingName + "</strong>."
+        );
+
+      } else if (data.status === "not_found") {
+        showMessage(msgBox, "error",
+          "❌ Mobile number not found in CIC records. Please check and try again."
+        );
+
+      } else if (data.status === "no_meeting") {
+        showMessage(msgBox, "warning", "⚠️ " + data.message);
+
+      } else {
+        showMessage(msgBox, "error", "❌ Something went wrong. Please try again.");
+      }
+    })
+    .catch(() => {
+      setLoading(false, "lookupBtn", "spinner");
+      showMessage(msgBox, "error", "❌ Could not connect. Please check your internet.");
+    });
+  }
+
+  function showConfirmScreen(data) {
+    document.getElementById("inputScreen").style.display = "none";
+    document.getElementById("confirmScreen").style.display = "block";
+    document.getElementById("memberName").textContent = "👤 " + data.name;
+    document.getElementById("memberUnit").textContent = "🏷️ " + data.unit;
+    document.getElementById("memberMeeting").textContent =
+      "📅 " + data.meetingName + " | " + data.meetingDate;
+  }
+
+  function confirmAttendance() {
+    const msgBox = document.getElementById("message2");
+    setLoading(true, "confirmBtn", "spinner2");
+
+    fetch(API_URL, {
+      method: "POST",
+      body: JSON.stringify({ action: "confirm", phone: currentPhone })
+    })
+    .then(r => r.json())
+    .then(data => {
+      setLoading(false, "confirmBtn", "spinner2");
+
+      if (data.status === "success") {
+        showSuccessScreen(data.name, data.unit);
+      } else if (data.status === "already_registered") {
+        showMessage(msgBox, "warning",
+          "⚠️ You are already registered for this meeting."
+        );
+      } else {
+        showMessage(msgBox, "error", "❌ Error recording attendance. Try again.");
+      }
+    })
+    .catch(() => {
+      setLoading(false, "confirmBtn", "spinner2");
+      showMessage(msgBox, "error", "❌ Connection error. Please try again.");
+    });
+  }
+
+  function showSuccessScreen(name, unit) {
+    document.getElementById("confirmScreen").style.display = "none";
+    document.getElementById("successScreen").style.display = "block";
+    document.getElementById("successMsg").innerHTML =
+      "Welcome, <strong>" + name + "</strong>! 🎉<br/>" +
+      "Your attendance for <strong>" + unit + "</strong> has been recorded.";
+  }
+
+  function resetForm() {
+    currentMember = null;
+    currentPhone = null;
+    document.getElementById("phoneInput").value = "";
+    document.getElementById("message").style.display = "none";
+    document.getElementById("message2").style.display = "none";
+    document.getElementById("inputScreen").style.display = "block";
+    document.getElementById("confirmScreen").style.display = "none";
+    document.getElementById("successScreen").style.display = "none";
+    document.getElementById("phoneInput").focus();
+  }
+
+  // ---- Helpers ----
+  function showMessage(box, type, html) {
+    box.className = "message " + type;
+    box.innerHTML = html;
+    box.style.display = "block";
+  }
+
+  function setLoading(isLoading, btnId, spinnerId) {
+    document.getElementById(btnId).disabled = isLoading;
+    document.getElementById(spinnerId).style.display = isLoading ? "block" : "none";
+  }
+
+  // Allow Enter key to trigger lookup
+  document.addEventListener("DOMContentLoaded", function () {
+    document.getElementById("phoneInput").addEventListener("keypress", function (e) {
+      if (e.key === "Enter") lookupMember();
+    });
+  });
+</script>
+
+</body>
+</html>
