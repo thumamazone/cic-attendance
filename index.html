@@ -239,7 +239,7 @@
       type="tel"
       id="phoneInput"
       placeholder="e.g. 55005500"
-      maxlength="15"
+      maxlength="10"
       inputmode="numeric"
       autofocus
     />
@@ -334,7 +334,7 @@
     const msgBox = document.getElementById("message");
 
     // Validate input
-    if (!phone || phone.length < 10) {
+    if (!phone || phone.length < 8) {
       showMessage(msgBox, "error", "⚠️ Please enter a valid mobile number.");
       return;
     }
